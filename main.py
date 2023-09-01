@@ -11,11 +11,32 @@ def get_job_satisfaction_counts(data_frame):
 
 
 def get_job_satisfaction_counts_by_country(data_frame, country_name):
-    # Convert the user input to lowercase for case-insensitive comparison
     country_name = country_name.lower()
     matching_rows = data_frame[data_frame['Country'].str.lower() == country_name]
     satisfaction_counts = matching_rows['JobSatisfaction'].value_counts()
-    return satisfaction_counts
+    years_of_experience_counts = matching_rows['YearsCoding'].value_counts()
+    return satisfaction_counts, years_of_experience_counts
+
+
+def plot_satisfaction_and_experience(satisfaction_counts, years_of_experience_counts, country_name):
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+
+    ax1.bar(satisfaction_counts.index, satisfaction_counts.values, alpha=0.7, color='b', label='Job Satisfaction')
+    ax1.set_xlabel('Satisfaction Level')
+    ax1.set_ylabel('Count (Job Satisfaction)', color='b')
+    ax1.tick_params('y', colors='b')
+    plt.xticks(rotation=45)
+    ax1.legend(loc='upper left')
+
+    ax2 = ax1.twinx()
+    ax2.plot(years_of_experience_counts.index, years_of_experience_counts.values, 'ro-', label='Years of Experience')
+    ax2.set_ylabel('Count (Years of Experience)', color='r')
+    ax2.tick_params('y', colors='r')
+    ax2.legend(loc='upper right')
+
+    plt.title(f'Job Satisfaction and Years of Experience for {country_name.capitalize()}')
+    plt.tight_layout()
+    plt.show()
 
 
 def main():
@@ -35,19 +56,31 @@ def main():
             print("Job Satisfaction distribution:")
             for satisfaction, count in satisfaction_counts.items():
                 print(f'{satisfaction}: {count} people')
+            plt.figure(figsize=(10, 6))
             plt.bar(satisfaction_counts.index, satisfaction_counts.values)
-            plt.xlabel("Job Satisfaction")
+            plt.xlabel("Satisfaction Level")
             plt.ylabel("Count")
             plt.title("Job Satisfaction Distribution")
+            plt.xticks(rotation=45)
+            plt.tight_layout()
             plt.show()
 
         elif choice == '2':
             country_name = input("Enter the country name to search: ")
-            satisfaction_counts = get_job_satisfaction_counts_by_country(df, country_name)
+            satisfaction_counts, years_of_experience_counts = get_job_satisfaction_counts_by_country(df, country_name)
             if not satisfaction_counts.empty:
-                print(f'Job Satisfaction distribution for {country_name.capitalize()}:')
+                print(f'Data for {country_name.capitalize()}:')
+                print("Job Satisfaction distribution:")
                 for satisfaction, count in satisfaction_counts.items():
                     print(f'{satisfaction}: {count} people')
+                if not years_of_experience_counts.empty:
+                    print("Years of Experience distribution:")
+                    for experience, count in years_of_experience_counts.items():
+                        print(f'{experience}: {count} people')
+                    # Plot satisfaction and experience
+                    plot_satisfaction_and_experience(satisfaction_counts, years_of_experience_counts, country_name)
+                else:
+                    print("No data found for Years of Experience.")
             else:
                 print(f'No data found for {country_name.capitalize()}')
 
